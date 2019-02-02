@@ -14,12 +14,46 @@ const port = Number(process.env['PORT'] || '3000')
 
 const JWT_SECRET = process.env['JWT_SECRET']
 
+function parseToken (token) {
+  try {
+    return jsonwebtoken.verify(token, JWT_SECRET, { algorithms: ['HS256'] })
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      throw createError(401, 'Expired token given')
+    } else {
+      throw createError(401, 'Invalid token given')
+    }
+  }
+}
+
 const validatePostSession = createValidator({
   type: 'object',
   properties: {
     email: { type: 'string', minLength: 1 },
     password: { type: 'string' }
-  }
+  },
+  required: [
+    'email',
+    'password'
+  ]
+})
+
+const validatePostBeerPrice = createValidator({
+  type: 'object',
+  properties: {
+    venue: { type: 'string', minLength: 1 },
+    beer: { type: 'string', minLength: 1 },
+    price: { type: 'number', multipleOf: 1 },
+    lat: { type: 'number' },
+    lng: { type: 'number' }
+  },
+  required: [
+    'venue',
+    'beer',
+    'price',
+    'lat',
+    'lng'
+  ]
 })
 
 app.get('/version', async (req, res) => {
@@ -51,6 +85,22 @@ app.post('/session', async (req, res) => {
   const token = jsonwebtoken.sign(payload, JWT_SECRET, options)
 
   res.json({ token, handle: rows[0].handle })
+})
+
+app.post('/beer-prices', async (req, res) => {
+  if (!req.headers['authorization']) throw createError(403)
+  if (!req.headers['authorization'].startsWith('Bearer ')) throw createError(403)
+  const auth = parseToken(req.header['authorization'].replace('Bearer ', ''))
+
+  const body = await getJsonBody(req)
+
+  if (!validatePostBeerPrice(body)) {
+    throw createError(400, { errors: validatePostBeerPrice.errors })
+  }
+
+  await pool.query(`INSERT INTO price (venue, beer, price, lat, lng) VALUES ($1, $2, $3, $4, $5)`, [body.venue, body.beer, body.price, body.lat, body.lng])
+
+  res.status(201).end()
 })
 
 app.listen(port, () => console.log(`http://localhost:${port}/`))
