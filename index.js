@@ -45,12 +45,12 @@ app.post('/session', async (req, res) => {
     throw createError(403)
   }
 
-  const payload = { sub: rows[0].id }
+  const payload = { sub: rows[0].id, handle: rows[0].handle }
   const options = { algorithm: 'HS256', expiresIn: '24h' }
 
   const token = jsonwebtoken.sign(payload, JWT_SECRET, options)
 
-  res.json({ token })
+  res.json({ token, handle: rows[0].handle })
 })
 
 app.listen(port, () => console.log(`http://localhost:${port}/`))
