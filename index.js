@@ -88,7 +88,7 @@ app.post('/session', async (req, res) => {
 })
 
 app.get('/beer-prices', async (req, res) => {
-  const { rows } = await pool.query(`SELECT venue, beer, price, lat, lng FROM price`)
+  const { rows } = await pool.query(`SELECT id, venue, beer, price, lat, lng FROM price`)
 
   res.json(rows)
 })
