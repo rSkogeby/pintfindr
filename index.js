@@ -87,6 +87,15 @@ app.post('/session', async (req, res) => {
   res.json({ token, handle: rows[0].handle })
 })
 
+app.get('/beer-prices', async (req, res) => {
+  if (!req.headers['authorization']) throw createError(403)
+  if (!req.headers['authorization'].startsWith('Bearer ')) throw createError(403)
+
+  const { rows } = await pool.query(`SELECT venue, beer, price, lat, lng FROM price`)
+
+  res.json(rows)
+})
+
 app.post('/beer-prices', async (req, res) => {
   if (!req.headers['authorization']) throw createError(403)
   if (!req.headers['authorization'].startsWith('Bearer ')) throw createError(403)
