@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@body/json": "^0.2.1",
-    "bcrypt": "^3.0.3",
+    "bcrypt": "^5.0.0",
     "db-migrate": "^0.11.5",
     "db-migrate-pg": "^0.4.0",
     "express": "^5.0.0-alpha.7",
